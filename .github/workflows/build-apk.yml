@@ -10,19 +10,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Get project
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Install Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
       - name: Install Android SDK
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        uses: android-actions/setup-android@v3
 
-      - name: Extract Android project
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Extract project
         run: unzip -q IslandFlowNative-Phone-Cloud-Build-Fixed.zip
 
       - name: Build APK
@@ -31,8 +41,9 @@ jobs:
           gradle wrapper --gradle-version 8.7
           ./gradlew assembleDebug
 
-      - uses: actions/upload-artifact@v4
+      - name: Save APK
+        uses: actions/upload-artifact@v4
         with:
-          name: IslandFlow-debug-APK
+          name: IslandFlow-APK
           path: IslandFlowNative/app/build/outputs/apk/debug/app-debug.apk
           
